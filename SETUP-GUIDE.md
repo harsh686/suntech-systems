@@ -137,6 +137,14 @@ Run in PowerShell:
 ```
 Example output: `aB3xK9mP2qR7sT1vW5yZ8cD4eF6gH0iJ`
 
+#### Variable 5: TEST_PASSWORD (for scraper testing)
+```
+Name: TEST_PASSWORD
+Value: [Any password you want for testing]
+Environments: ✅ Production ✅ Preview ✅ Development
+```
+Example: `mysecretpass123`
+
 ### 3.3 Redeploy
 - After adding all 4 variables, go to **Deployments** tab
 - Click **"Redeploy"** on the latest deployment
@@ -144,7 +152,26 @@ Example output: `aB3xK9mP2qR7sT1vW5yZ8cD4eF6gH0iJ`
 
 ---
 
-## ✅ Step 4: Test Price Scraper (5 minutes)
+## ✅ Step 4: Test Scrapers (Two Methods)
+
+### Method 1: Admin Dashboard (Recommended - Runs on Server)
+
+**Best for:** Testing how it will work in production (no browser on your machine)
+
+1. Open your website: `https://suntech-systems.vercel.app/admin/scrapers`
+2. Enter your `TEST_PASSWORD` (from Step 3.2)
+3. Click **"Run Test"**
+4. ⏳ Wait 20-40 seconds (scrapers run on Vercel's server)
+5. ✅ View results:
+   - PM Surya Ghar subsidy rates (₹30k, ₹18k, ₹78k)
+   - Solar panel prices (residential + commercial averages)
+   - Execution time, sources count, min/max ranges
+
+**Note:** This runs in **headless mode** (no visible browser). The scraping happens on Vercel's server, not your machine!
+
+### Method 2: Local Testing (Optional - Runs on Your Machine)
+
+**Best for:** Quick debugging with visible browser
 
 ### 4.1 Run Test Locally
 ```powershell
