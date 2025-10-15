@@ -18,18 +18,59 @@ interface SubsidyData {
 export async function scrapePMSuryaGhar(): Promise<SubsidyData> {
   console.log('🚀 Starting PM Surya Ghar portal scraping...');
   
-  // Check if running on Vercel (serverless)
-  const isVercel = !!process.env.VERCEL;
+  let browser;
   
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: isVercel ? await chromiumPkg.executablePath() : undefined,
-    args: isVercel ? chromiumPkg.args : [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage'
-    ]
-  });
+  try {
+    // Check if running on Vercel (serverless)
+    const isVercel = !!process.env.VERCEL;
+    
+    console.log(`🌐 Environment: ${isVercel ? 'Vercel (serverless)' : 'Local'}`);
+    
+    const launchOptions: any = {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
+    };
+    
+    if (isVercel) {
+      try {
+        launchOptions.executablePath = await chromiumPkg.executablePath();
+        launchOptions.args = chromiumPkg.args;
+        console.log('✅ Using serverless Chromium');
+      } catch (error) {
+        console.error('⚠️ Failed to get Chromium path, trying default:', error);
+      }
+    }
+    
+    browser = await chromium.launch(launchOptions);
+    console.log('✅ Browser launched successfully');
+  } catch (error: any) {
+    console.error('❌ Failed to launch browser:', error.message);
+    
+    // Return fallback data if browser fails
+    return {
+      source: 'PM Surya Ghar Portal (Fallback Data)',
+      lastUpdated: new Date().toISOString(),
+      centralSubsidy: {
+        upTo2kW: 30000,
+        from2To3kW: 18000,
+        above3kW: 78000,
+        specialCategoryBonus: 10
+      },
+      specialCategoryStates: [
+        'assam', 'sikkim', 'ladakh', 'lakshadweep', 'andaman_nicobar',
+        'arunachal_pradesh', 'meghalaya', 'mizoram', 'manipur', 'nagaland',
+        'tripura', 'himachal_pradesh', 'uttarakhand', 'jammu_kashmir'
+      ]
+    };
+  }
 
   const page = await browser.newPage();
   
@@ -106,8 +147,31 @@ export async function scrapePMSuryaGhar(): Promise<SubsidyData> {
 
   } catch (error) {
     console.error('❌ Error scraping PM Surya Ghar:', error);
-    await browser.close();
-    throw error;
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+    
+    // Return fallback data instead of throwing
+    console.log('⚠️ Returning fallback subsidy data');
+    return {
+      source: 'PM Surya Ghar Portal (Fallback - Check pmsuryaghar.gov.in)',
+      lastUpdated: new Date().toISOString(),
+      centralSubsidy: {
+        upTo2kW: 30000,
+        from2To3kW: 18000,
+        above3kW: 78000,
+        specialCategoryBonus: 10
+      },
+      specialCategoryStates: [
+        'assam', 'sikkim', 'ladakh', 'lakshadweep', 'andaman_nicobar',
+        'arunachal_pradesh', 'meghalaya', 'mizoram', 'manipur', 'nagaland',
+        'tripura', 'himachal_pradesh', 'uttarakhand', 'jammu_kashmir'
+      ]
+    };
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
   }
 }
 

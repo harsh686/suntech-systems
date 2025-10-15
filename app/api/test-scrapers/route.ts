@@ -127,7 +127,15 @@ export async function GET(request: NextRequest) {
       results,
       totalDuration: `${(totalDuration / 1000).toFixed(2)}s`,
       timestamp: new Date().toISOString(),
-      note: 'Scrapers ran in HEADLESS mode (no browser visible)'
+      environment: {
+        isVercel: !!process.env.VERCEL,
+        nodeVersion: process.version,
+        platform: process.platform,
+        hasChromium: !!process.env.VERCEL
+      },
+      note: process.env.VERCEL 
+        ? 'Scrapers ran in HEADLESS mode on Vercel (serverless Chromium)'
+        : 'Scrapers ran in HEADLESS mode locally'
     });
 
   } catch (error: any) {
