@@ -1,5 +1,6 @@
 // lib/scrapers/pmsuryaghar-scraper.ts
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
+import chromiumPkg from '@sparticuz/chromium';
 import * as cheerio from 'cheerio';
 
 interface SubsidyData {
@@ -17,9 +18,17 @@ interface SubsidyData {
 export async function scrapePMSuryaGhar(): Promise<SubsidyData> {
   console.log('🚀 Starting PM Surya Ghar portal scraping...');
   
+  // Check if running on Vercel (serverless)
+  const isVercel = !!process.env.VERCEL;
+  
   const browser = await chromium.launch({
-    headless: true, // Run without GUI
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    headless: true,
+    executablePath: isVercel ? await chromiumPkg.executablePath() : undefined,
+    args: isVercel ? chromiumPkg.args : [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage'
+    ]
   });
 
   const page = await browser.newPage();

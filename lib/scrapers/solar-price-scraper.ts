@@ -1,5 +1,6 @@
 // lib/scrapers/solar-price-scraper.ts
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
+import chromiumPkg from '@sparticuz/chromium';
 import * as cheerio from 'cheerio';
 
 interface SolarPriceData {
@@ -49,7 +50,13 @@ const PRICE_SOURCES = {
 export async function scrapeIndiaMartPrices(): Promise<SolarPriceData[]> {
   console.log('🚀 Scraping IndiaMART for solar panel prices...');
   
-  const browser = await chromium.launch({ headless: true });
+  const isVercel = !!process.env.VERCEL;
+  
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: isVercel ? await chromiumPkg.executablePath() : undefined,
+    args: isVercel ? chromiumPkg.args : ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   const prices: SolarPriceData[] = [];
 
@@ -110,7 +117,13 @@ export async function scrapeIndiaMartPrices(): Promise<SolarPriceData[]> {
 export async function scrapeTataPowerSolar(): Promise<SolarPriceData[]> {
   console.log('🚀 Scraping Tata Power Solar for prices...');
   
-  const browser = await chromium.launch({ headless: true });
+  const isVercel = !!process.env.VERCEL;
+  
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: isVercel ? await chromiumPkg.executablePath() : undefined,
+    args: isVercel ? chromiumPkg.args : ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   const prices: SolarPriceData[] = [];
 
@@ -171,7 +184,13 @@ export async function scrapeTataPowerSolar(): Promise<SolarPriceData[]> {
 export async function scrapeLuminousSolar(): Promise<SolarPriceData[]> {
   console.log('🚀 Scraping Luminous Solar for prices...');
   
-  const browser = await chromium.launch({ headless: true });
+  const isVercel = !!process.env.VERCEL;
+  
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: isVercel ? await chromiumPkg.executablePath() : undefined,
+    args: isVercel ? chromiumPkg.args : ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   const prices: SolarPriceData[] = [];
 
