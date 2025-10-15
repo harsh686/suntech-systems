@@ -1,23 +1,60 @@
 // lib/supabase/client.ts
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// Lazy-loaded Supabase clients (initialized only when used)
+let _supabaseAdmin: SupabaseClient | null = null;
+let _supabasePublic: SupabaseClient | null = null;
 
-// Create Supabase client with service role (for cron jobs)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+// Get admin client (for cron jobs and server-side operations)
+export const getSupabaseAdmin = () => {
+  if (!_supabaseAdmin) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('⚠️ Supabase credentials not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+      // Return a mock client that throws errors when used
+      throw new Error('Supabase not configured. Please set environment variables.');
+    }
+    
+    _supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
+  return _supabaseAdmin;
+};
+
+// Get public client (for website - read-only)
+export const getSupabasePublic = () => {
+  if (!_supabasePublic) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('⚠️ Supabase credentials not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      throw new Error('Supabase not configured. Please set environment variables.');
+    }
+    
+    _supabasePublic = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return _supabasePublic;
+};
+
+// Legacy exports (for backward compatibility)
+export const supabaseAdmin = new Proxy({} as any, {
+  get: (target, prop) => {
+    return getSupabaseAdmin()[prop as keyof SupabaseClient];
   }
 });
 
-// Create public client (for website - read-only)
-export const supabasePublic = createClient(
-  supabaseUrl,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+export const supabasePublic = new Proxy({} as any, {
+  get: (target, prop) => {
+    return getSupabasePublic()[prop as keyof SupabaseClient];
+  }
+});
 
 // Types
 export interface CentralSubsidy {
@@ -59,7 +96,8 @@ export interface CalculatorData {
  */
 export async function getCalculatorData(): Promise<CalculatorData | null> {
   try {
-    const { data, error } = await supabasePublic.rpc('get_calculator_data');
+    const supabase = getSupabasePublic();
+    const { data, error } = await supabase.rpc('get_calculator_data');
 
     if (error) {
       console.error('Error fetching calculator data:', error);
@@ -77,20 +115,26 @@ export async function getCalculatorData(): Promise<CalculatorData | null> {
  * Get latest central subsidy
  */
 export async function getLatestCentralSubsidy(): Promise<CentralSubsidy | null> {
-  const { data, error } = await supabasePublic
-    .from('central_subsidies')
-    .select('*')
-    .eq('is_active', true)
-    .order('last_updated', { ascending: false })
-    .limit(1)
-    .single();
+  try {
+    const supabase = getSupabasePublic();
+    const { data, error } = await supabase
+      .from('central_subsidies')
+      .select('*')
+      .eq('is_active', true)
+      .order('last_updated', { ascending: false })
+      .limit(1)
+      .single();
 
-  if (error) {
-    console.error('Error fetching central subsidy:', error);
+    if (error) {
+      console.error('Error fetching central subsidy:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to get latest central subsidy:', error);
     return null;
   }
-
-  return data;
 }
 
 /**
@@ -100,62 +144,80 @@ export async function getLatestPrices(): Promise<{
   residential: SolarPrice | null;
   commercial: SolarPrice | null;
 }> {
-  const { data: residentialData } = await supabasePublic
-    .from('solar_prices')
-    .select('*')
-    .eq('property_type', 'residential')
-    .order('scrape_date', { ascending: false })
-    .limit(1)
-    .single();
+  try {
+    const supabase = getSupabasePublic();
+    const { data: residentialData } = await supabase
+      .from('solar_prices')
+      .select('*')
+      .eq('property_type', 'residential')
+      .order('scrape_date', { ascending: false })
+      .limit(1)
+      .single();
 
-  const { data: commercialData } = await supabasePublic
-    .from('solar_prices')
-    .select('*')
-    .eq('property_type', 'commercial')
-    .order('scrape_date', { ascending: false })
-    .limit(1)
-    .single();
+    const { data: commercialData } = await supabase
+      .from('solar_prices')
+      .select('*')
+      .eq('property_type', 'commercial')
+      .order('scrape_date', { ascending: false })
+      .limit(1)
+      .single();
 
-  return {
-    residential: residentialData,
-    commercial: commercialData
-  };
+    return {
+      residential: residentialData,
+      commercial: commercialData
+    };
+  } catch (error) {
+    console.error('Failed to get latest prices:', error);
+    return { residential: null, commercial: null };
+  }
 }
 
 /**
  * Get all active state subsidies
  */
 export async function getStateSubsidies(): Promise<StateSubsidy[]> {
-  const { data, error } = await supabasePublic
-    .from('state_subsidies')
-    .select('*')
-    .eq('is_active', true)
-    .order('state_name');
+  try {
+    const supabase = getSupabasePublic();
+    const { data, error } = await supabase
+      .from('state_subsidies')
+      .select('*')
+      .eq('is_active', true)
+      .order('state_name');
 
-  if (error) {
-    console.error('Error fetching state subsidies:', error);
+    if (error) {
+      console.error('Error fetching state subsidies:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Failed to get state subsidies:', error);
     return [];
   }
-
-  return data || [];
 }
 
 /**
  * Get special category states (for 10% bonus)
  */
 export async function getSpecialCategoryStates(): Promise<string[]> {
-  const { data, error } = await supabasePublic
-    .from('state_subsidies')
-    .select('state_code')
-    .eq('is_special_category', true)
-    .eq('is_active', true);
+  try {
+    const supabase = getSupabasePublic();
+    const { data, error } = await supabase
+      .from('state_subsidies')
+      .select('state_code')
+      .eq('is_special_category', true)
+      .eq('is_active', true);
 
-  if (error) {
-    console.error('Error fetching special category states:', error);
+    if (error) {
+      console.error('Error fetching special category states:', error);
+      return [];
+    }
+
+    return data?.map((s: any) => s.state_code) || [];
+  } catch (error) {
+    console.error('Failed to get special category states:', error);
     return [];
   }
-
-  return data?.map(s => s.state_code) || [];
 }
 
 /**
@@ -167,14 +229,16 @@ export async function saveCentralSubsidy(data: {
   above_3kw: number;
   special_category_bonus: number;
 }) {
+  const supabase = getSupabaseAdmin();
+  
   // Deactivate old records
-  await supabaseAdmin
+  await supabase
     .from('central_subsidies')
     .update({ is_active: false })
     .eq('is_active', true);
 
   // Insert new record
-  const { data: result, error } = await supabaseAdmin
+  const { data: result, error } = await supabase
     .from('central_subsidies')
     .insert({
       ...data,
@@ -210,16 +274,17 @@ export async function saveSolarPrices(data: {
     sourceNames: string[];
   };
 }) {
+  const supabase = getSupabaseAdmin();
   const today = new Date().toISOString().split('T')[0];
 
   // Delete today's records (if re-running)
-  await supabaseAdmin
+  await supabase
     .from('solar_prices')
     .delete()
     .eq('scrape_date', today);
 
   // Insert new records
-  const { error: resError } = await supabaseAdmin
+  const { error: resError } = await supabase
     .from('solar_prices')
     .insert({
       property_type: 'residential',
@@ -231,7 +296,7 @@ export async function saveSolarPrices(data: {
       scrape_date: today
     });
 
-  const { error: comError } = await supabaseAdmin
+  const { error: comError } = await supabase
     .from('solar_prices')
     .insert({
       property_type: 'commercial',
@@ -255,6 +320,7 @@ export async function saveSolarPrices(data: {
  * Save price history record (for analytics)
  */
 export async function savePriceHistory(prices: any[]) {
+  const supabase = getSupabaseAdmin();
   const records = prices.map(p => ({
     source_name: p.source,
     property_type: p.type,
@@ -264,7 +330,7 @@ export async function savePriceHistory(prices: any[]) {
     scrape_date: new Date().toISOString().split('T')[0]
   }));
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('price_history')
     .insert(records);
 
@@ -283,7 +349,8 @@ export async function logScraperExecution(data: {
   errors?: string[];
   duration_ms: number;
 }) {
-  const { error } = await supabaseAdmin
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
     .from('scraper_logs')
     .insert(data);
 
@@ -296,16 +363,22 @@ export async function logScraperExecution(data: {
  * Get price trends (for analytics dashboard - future)
  */
 export async function getPriceTrends(days: number = 30) {
-  const { data, error } = await supabasePublic
-    .from('solar_prices')
-    .select('*')
-    .gte('scrape_date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
-    .order('scrape_date', { ascending: true });
+  try {
+    const supabase = getSupabasePublic();
+    const { data, error } = await supabase
+      .from('solar_prices')
+      .select('*')
+      .gte('scrape_date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+      .order('scrape_date', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching price trends:', error);
+    if (error) {
+      console.error('Error fetching price trends:', error);
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to get price trends:', error);
     return [];
   }
-
-  return data;
 }
