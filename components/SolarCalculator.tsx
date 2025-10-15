@@ -6,7 +6,9 @@ import { FiZap, FiHome, FiMapPin, FiDollarSign, FiTrendingUp, FiSun, FiCheckCirc
 interface CalculatorResult {
   systemSize: number;
   totalCost: number;
-  subsidyAmount: number;
+  centralSubsidy: number;
+  stateSubsidy: number;
+  totalSubsidy: number;
   finalCost: number;
   annualSavings: number;
   paybackPeriod: number;
@@ -14,6 +16,55 @@ interface CalculatorResult {
   co2Offset: number;
   treesEquivalent: number;
   monthlyProduction: number;
+}
+
+// Special category states eligible for additional 10% central subsidy
+// Source: PM Surya Ghar National Portal (pmsuryaghar.gov.in) - Last verified: Oct 2025
+const specialCategoryStates = [
+  'arunachal-pradesh', 'assam', 'manipur', 'meghalaya', 'mizoram', 'nagaland', 
+  'sikkim', 'tripura', 'himachal-pradesh', 'uttarakhand', 'jammu-kashmir', 
+  'ladakh', 'andaman-nicobar', 'lakshadweep'
+];
+
+// Indian States and Union Territories
+const indianStates: Record<string, string> = {
+  'general': 'Select Your State/UT',
+  'andhra-pradesh': 'Andhra Pradesh',
+  'arunachal-pradesh': 'Arunachal Pradesh',
+  'assam': 'Assam',
+  'bihar': 'Bihar',
+  'chhattisgarh': 'Chhattisgarh',
+  'goa': 'Goa',
+  'gujarat': 'Gujarat',
+  'haryana': 'Haryana',
+  'himachal-pradesh': 'Himachal Pradesh',
+  'jharkhand': 'Jharkhand',
+  'karnataka': 'Karnataka',
+  'kerala': 'Kerala',
+  'madhya-pradesh': 'Madhya Pradesh',
+  'maharashtra': 'Maharashtra',
+  'manipur': 'Manipur',
+  'meghalaya': 'Meghalaya',
+  'mizoram': 'Mizoram',
+  'nagaland': 'Nagaland',
+  'odisha': 'Odisha',
+  'punjab': 'Punjab',
+  'rajasthan': 'Rajasthan',
+  'sikkim': 'Sikkim',
+  'tamil-nadu': 'Tamil Nadu',
+  'telangana': 'Telangana',
+  'tripura': 'Tripura',
+  'uttar-pradesh': 'Uttar Pradesh',
+  'uttarakhand': 'Uttarakhand',
+  'west-bengal': 'West Bengal',
+  'andaman-nicobar': 'Andaman & Nicobar Islands',
+  'chandigarh': 'Chandigarh',
+  'dadra-nagar-haveli': 'Dadra & Nagar Haveli and Daman & Diu',
+  'delhi': 'Delhi',
+  'jammu-kashmir': 'Jammu & Kashmir',
+  'ladakh': 'Ladakh',
+  'lakshadweep': 'Lakshadweep',
+  'puducherry': 'Puducherry',
 }
 
 export default function SolarCalculator() {
@@ -66,19 +117,33 @@ export default function SolarCalculator() {
     const costPerKW = formData.propertyType === 'residential' ? 45000 : 50000;
     const totalCost = systemSize * costPerKW;
     
-    // Government subsidy calculation (for residential only)
-    let subsidyAmount = 0;
+    // Central government subsidy calculation (PM Surya Ghar - for residential only)
+    // Source: pmsuryaghar.gov.in - Last verified: Oct 2025
+    let centralSubsidy = 0;
     if (formData.propertyType === 'residential') {
-      if (systemSize <= 3) {
-        subsidyAmount = systemSize * 18000; // ₹18,000 per kW up to 3kW
-      } else if (systemSize <= 10) {
-        subsidyAmount = (3 * 18000) + ((systemSize - 3) * 9000); // ₹9,000 per kW for 3-10kW
+      if (systemSize <= 2) {
+        // ₹30,000 per kW for systems up to 2 kW
+        centralSubsidy = systemSize * 30000;
+      } else if (systemSize <= 3) {
+        // ₹30,000 per kW for first 2 kW + ₹18,000 per kW for 2-3 kW
+        centralSubsidy = (2 * 30000) + ((systemSize - 2) * 18000);
       } else {
-        subsidyAmount = (3 * 18000) + (7 * 9000); // Max subsidy for 10kW
+        // Fixed ₹78,000 for systems above 3 kW (as per official portal)
+        centralSubsidy = 78000;
+      }
+      
+      // Special category states get additional 10% subsidy
+      if (formData.state !== 'general' && specialCategoryStates.includes(formData.state)) {
+        centralSubsidy = centralSubsidy * 1.1; // Add 10% for special states
       }
     }
     
-    const finalCost = totalCost - subsidyAmount;
+    // State-specific subsidies: Not yet officially published by most state governments
+    // Users should verify with their state DISCOM or energy department
+    const stateSubsidy = 0;
+    
+    const totalSubsidy = centralSubsidy + stateSubsidy;
+    const finalCost = totalCost - totalSubsidy;
     
     // Savings calculations
     const monthlyProduction = systemSize * unitsPerKWPerDay * 30;
@@ -102,7 +167,9 @@ export default function SolarCalculator() {
     const calculatorResult: CalculatorResult = {
       systemSize,
       totalCost,
-      subsidyAmount,
+      centralSubsidy,
+      stateSubsidy,
+      totalSubsidy,
       finalCost,
       annualSavings,
       paybackPeriod,
@@ -195,6 +262,40 @@ export default function SolarCalculator() {
                 </div>
               </div>
 
+              {/* State/UT Selection */}
+              {formData.propertyType === 'residential' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    State/Union Territory
+                  </label>
+                  <div className="relative">
+                    <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <select
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none"
+                    >
+                      {Object.entries(indianStates).map(([key, name]) => (
+                        <option key={key} value={key}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {formData.state !== 'general' && specialCategoryStates.includes(formData.state) && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">
+                      ✓ Special Category State - Eligible for additional 10% central subsidy
+                    </p>
+                  )}
+                  {formData.state !== 'general' && !specialCategoryStates.includes(formData.state) && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      State-specific subsidies may be available - verify with your local DISCOM
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Electricity Rate */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -251,10 +352,20 @@ export default function SolarCalculator() {
                     <div className="text-2xl font-bold">₹{(result.totalCost / 100000).toFixed(2)}L</div>
                   </div>
                   
-                  {result.subsidyAmount > 0 && (
+                  {result.totalSubsidy > 0 && (
                     <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                      <div className="text-sm text-white/80 mb-1">Govt. Subsidy</div>
-                      <div className="text-2xl font-bold text-green-300">-₹{(result.subsidyAmount / 100000).toFixed(2)}L</div>
+                      <div className="text-sm text-white/80 mb-1">Total Subsidy</div>
+                      <div className="text-2xl font-bold text-green-300">-₹{(result.totalSubsidy / 100000).toFixed(2)}L</div>
+                    </div>
+                  )}
+                  
+                  {result.centralSubsidy > 0 && (
+                    <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm col-span-2">
+                      <div className="text-xs text-white/70 mb-1">Central Govt Subsidy (PM Surya Ghar)</div>
+                      <div className="text-2xl font-bold text-green-300">₹{(result.centralSubsidy / 100000).toFixed(2)}L</div>
+                      <div className="text-xs text-white/60 mt-1">
+                        Verified from pmsuryaghar.gov.in
+                      </div>
                     </div>
                   )}
                   
@@ -322,20 +433,42 @@ export default function SolarCalculator() {
         </div>
 
         {showResult && (
-          <div className="mt-8 text-center animate-fade-in">
-            <p className="text-lg text-gray-700 mb-4 font-medium">
-              Ready to start your solar journey? Get a detailed proposal!
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <a href="tel:9771045001" className="btn-primary">
-                <FiZap className="inline mr-2" />
-                Call Now: 9771045001
-              </a>
-              <a href="#contact" className="btn-secondary">
-                Get Free Consultation
-              </a>
+          <>
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                  <FiCheckCircle className="w-5 h-5" />
+                  Important Subsidy Information
+                </h4>
+                <div className="text-sm text-blue-800 space-y-2">
+                  <p>
+                    ✓ <strong>Central Subsidy:</strong> Verified from PM Surya Ghar National Portal (pmsuryaghar.gov.in) - Last updated October 2025
+                  </p>
+                  <p>
+                    ℹ️ <strong>State-Specific Subsidies:</strong> Some states offer additional subsidies. Please verify current schemes with your local DISCOM (Electricity Distribution Company) or State Energy Department
+                  </p>
+                  <p>
+                    📞 <strong>Special Category States:</strong> If your state qualifies for the additional 10% central subsidy, it has been included in the calculation above
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+            
+            <div className="mt-8 text-center animate-fade-in">
+              <p className="text-lg text-gray-700 mb-4 font-medium">
+                Ready to start your solar journey? Get a detailed proposal!
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <a href="tel:9771045001" className="btn-primary">
+                  <FiZap className="inline mr-2" />
+                  Call Now: 9771045001
+                </a>
+                <a href="#contact" className="btn-secondary">
+                  Get Free Consultation
+                </a>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </section>
