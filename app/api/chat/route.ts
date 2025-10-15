@@ -25,9 +25,12 @@ Track Record: 500+ installations, 5+ MW capacity, ₹2Cr+ customer savings
 
 SOLAR MARKET DATA:
 System Cost: ₹40,000-55,000 per kW installed
-Government Subsidy (Residential):
-• Up to 3kW: ₹18,000 per kW (max ₹54,000)
-• 3-10kW: ₹54,000 for first 3kW + ₹9,000/kW for remaining (max ₹78,000)
+Government Subsidy (PM Surya Ghar - Residential Only):
+• Up to 2kW: ₹30,000 per kW
+• 2kW to 3kW: ₹18,000 per kW (for additional capacity)
+• Above 3kW: Fixed ₹78,000 (maximum subsidy cap)
+• Special Category States: Additional 10% bonus (NE states, J&K, Ladakh, Himachal, Uttarakhand, A&N, Lakshadweep)
+Source: pmsuryaghar.gov.in (verified Oct 2025)
 
 Typical Payback: 3-5 years
 Panel Lifespan: 25+ years with warranty
@@ -44,10 +47,10 @@ System Sizes:
 • 3 kW system: ₹1,20,000 to ₹1,65,000
 • 5 kW system: ₹2,00,000 to ₹2,75,000
 
-After Government Subsidy:
-• 2 kW: Final cost ₹44,000 (save ₹36,000)
-• 3 kW: Final cost ₹96,000 (save ₹54,000)
-• 5 kW: Final cost ₹1,72,000 (save ₹78,000)
+After Government Subsidy (PM Surya Ghar):
+• 2 kW: Final cost ₹30,000 (save ₹60,000)
+• 3 kW: Final cost ₹57,000 (save ₹78,000)
+• 5 kW: Final cost ₹1,47,000 (save ₹78,000)
 
 What's included:
 • High-efficiency solar panels with 25-year warranty
@@ -66,9 +69,9 @@ Your yearly electricity expense: ₹60,000
 
 Recommended System:
 System size: 5 kW solar system
-System cost: ₹2,50,000
-Government subsidy: ₹78,000
-Your investment: ₹1,72,000
+System cost: ₹2,25,000
+Government subsidy: ₹78,000 (PM Surya Ghar)
+Your investment: ₹1,47,000
 
 Monthly Savings:
 New electricity bill: ₹800 only
@@ -76,9 +79,9 @@ Monthly savings: ₹4,200
 Annual savings: ₹50,400
 
 Return on Investment:
-Payback period: 3.4 years
+Payback period: 2.9 years
 25-year total savings: ₹12,60,000
-ROI percentage: 732%
+ROI percentage: 857%
 
 Environmental Impact:
 CO₂ reduction: 6.5 tons per year
@@ -89,16 +92,17 @@ Would you like me to connect you with our team for a free site survey?"
 Example 3 - Subsidy Question:
 "The PM Surya Ghar subsidy is available for residential properties:
 
-Subsidy Structure:
-• 1 kW to 2 kW: ₹18,000 per kW
-• 2 kW to 3 kW: ₹18,000 per kW
-• Above 3 kW: ₹9,000 per kW (for capacity above 3kW)
-• Maximum subsidy: ₹78,000
+Subsidy Structure (Updated Oct 2025):
+• Up to 2kW: ₹30,000 per kW
+• 2kW to 3kW: ₹18,000 per kW (for additional capacity)
+• Above 3kW: Fixed ₹78,000 (capped)
+• Special states: Extra 10% bonus for NE states, Himachal, Uttarakhand, J&K, Ladakh
 
 Real Examples:
-2 kW system gets ₹36,000
-3 kW system gets ₹54,000
-5 kW system gets ₹78,000 (₹54,000 for first 3kW + ₹18,000 for remaining 2kW)
+1 kW system gets ₹30,000
+2 kW system gets ₹60,000 (2 × ₹30,000)
+3 kW system gets ₹78,000 (2 × ₹30,000 + 1 × ₹18,000)
+5 kW system gets ₹78,000 (maximum cap)
 
 Eligibility:
 • Must be residential property
