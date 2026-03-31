@@ -1,8 +1,4 @@
-# Suntech Systems - Solar Energy Website
-
 A modern, fully-functional website for **Suntech Systems**, a leading solar energy solutions provider in India.
-
-## 🌟 Features
 
 ### 🎯 Core Features
 - **Intelligent Solar Calculator**: Calculate system size, costs, ROI, and savings with government subsidy calculations
@@ -28,14 +24,11 @@ A modern, fully-functional website for **Suntech Systems**, a leading solar ener
 - **Smooth animations**: Fade-in, slide-up effects
 - **Guided user flow**: From landing to call-to-action
 
-## 🚀 Getting Started
-
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
 
 ### Installation
-
 1. **Install dependencies**:
 ```bash
 npm install
@@ -43,14 +36,28 @@ npm install
 
 2. **Configure environment variables**:
 
-Edit `.env.local` and add your email credentials:
+Create a `.env.local` file in the root directory and fill in your values:
 ```env
-EMAIL_USER=ssystems952@gmail.com
+# Email Configuration (For Contact Form)
+EMAIL_USER=your_gmail_address@gmail.com
 EMAIL_PASSWORD=your_gmail_app_password
-EMAIL_TO=ssystems952@gmail.com
+EMAIL_TO=your_receiving_email@gmail.com
 
-NEXT_PUBLIC_COMPANY_PHONE=9771045001
-NEXT_PUBLIC_COMPANY_EMAIL=ssystems952@gmail.com
+# Company Contact Info (Displayed on site & chatbot)
+NEXT_PUBLIC_COMPANY_PHONE=your_company_phone_number
+NEXT_PUBLIC_COMPANY_EMAIL=your_company_email@gmail.com
+
+# OpenRouter AI (For SolarGPT Chatbot)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_MODEL=google/gemini-2.5-flash-preview-09-2025
+
+# Supabase (For Dynamic Data)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Site URL
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
 ```
 
 **Important**: For Gmail, you need to create an App Password:
@@ -67,19 +74,19 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Build for Production
-
 ```bash
 npm run build
 npm start
 ```
 
 ## 📁 Project Structure
-
 ```
 suntech-systems/
 ├── app/
 │   ├── api/contact/
 │   │   └── route.ts          # Contact form API endpoint
+│   ├── api/chat/
+│   │   └── route.ts          # SolarGPT chatbot endpoint
 │   ├── layout.tsx             # Root layout with SEO metadata
 │   ├── page.tsx               # Main homepage
 │   └── globals.css            # Global styles
@@ -94,23 +101,27 @@ suntech-systems/
 │   ├── HowItWorks.tsx         # Process timeline
 │   ├── ContactSection.tsx     # Contact information
 │   └── Footer.tsx             # Footer
-├── .env.local                 # Environment variables
+├── lib/
+│   ├── supabase/client.ts     # Supabase client & data helpers
+│   └── scrapers/              # Web scrapers for dynamic data
+├── supabase/schema.sql        # Database schema
+├── .env.local                 # Environment variables (NOT committed)
 ├── package.json               # Dependencies
 ├── tailwind.config.ts         # Tailwind configuration
 └── next.config.mjs            # Next.js configuration
 ```
 
 ## 🔧 Tech Stack
-
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Icons**: React Icons (Feather Icons)
 - **Email**: Nodemailer
+- **AI**: OpenRouter API
+- **Database**: Supabase
 - **Fonts**: Google Fonts (Inter, Poppins)
 
 ## 📊 Solar Calculator Logic
-
 The calculator uses real Indian market data:
 
 - **Solar Panel Efficiency**: 80%
@@ -124,7 +135,6 @@ The calculator uses real Indian market data:
 - **Electricity Rate Escalation**: 5% annually
 
 ## 🎯 SEO & LLM Optimization
-
 The website is optimized for both traditional search engines and AI models (ChatGPT, Claude):
 
 - Comprehensive meta tags
@@ -135,23 +145,15 @@ The website is optimized for both traditional search engines and AI models (Chat
 - Open Graph tags
 - Twitter Card tags
 
-## 📱 Contact Information
-
-- **Phone**: +91 9771045001
-- **Email**: ssystems952@gmail.com
-- **Service Area**: All of India 🇮🇳
-
-## 🌐 Deployment
+## Deployment
 
 ### Vercel (Recommended)
-
 1. Push to GitHub
 2. Import to Vercel
-3. Add environment variables
+3. Add all environment variables from `.env.local` in Vercel project settings
 4. Deploy!
 
 ### Other Platforms
-
 Compatible with any Node.js hosting:
 - Netlify
 - AWS Amplify
@@ -160,7 +162,6 @@ Compatible with any Node.js hosting:
 - Render
 
 ## 📄 Pages to Create (Optional Additions)
-
 For a complete website, consider adding:
 - `/about` - About Suntech Systems
 - `/blog` - Solar energy articles
@@ -169,14 +170,7 @@ For a complete website, consider adding:
 - `/privacy-policy` - Privacy policy
 - `/terms-of-service` - Terms and conditions
 
-## 🤝 Support
-
-For technical support or inquiries:
-- Email: ssystems952@gmail.com
-- Phone: +91 9771045001
-
 ## 📝 License
-
 © 2024 Suntech Systems. All rights reserved.
 
 ---
