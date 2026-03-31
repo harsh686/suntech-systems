@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash-preview-09-2025';
 
+const COMPANY_PHONE = process.env.NEXT_PUBLIC_COMPANY_PHONE || 'YOUR_PHONE_NUMBER';
+const COMPANY_EMAIL = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'your_email@example.com';
+
 // System prompt - This makes the AI a solar expert
 const SYSTEM_PROMPT = `You are an expert Solar Energy Advisor for Suntech Systems, India's trusted solar installation company.
 
@@ -18,8 +21,8 @@ CRITICAL FORMATTING RULES:
 - Keep responses clean and professional
 
 COMPANY INFO:
-Phone: 9771045001
-Email: ssystems952@gmail.com
+Phone: ${COMPANY_PHONE}
+Email: ${COMPANY_EMAIL}
 Coverage: All India
 Track Record: 500+ installations, 5+ MW capacity, ₹2Cr+ customer savings
 
@@ -136,8 +139,9 @@ IMPORTANT RESTRICTIONS:
 • If unsure, say "Let me connect you with our technical team"
 
 HANDOFF TO HUMAN:
+
 After answering 3-4 questions, suggest:
-"I've covered the basics! Our solar engineers can create a customized proposal for your specific property and needs. Would you like a free consultation? Call us at 9771045001 or share your number and we'll reach out."
+"I've covered the basics! Our solar engineers can create a customized proposal for your specific property and needs. Would you like a free consultation? Call us at ${COMPANY_PHONE} or share your number and we'll reach out."
 
 YOUR GOAL: Build trust, educate, and guide towards booking a consultation.`;
 
@@ -185,7 +189,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    
+
     // Extract AI response
     const aiMessage = data.choices[0]?.message?.content;
 
